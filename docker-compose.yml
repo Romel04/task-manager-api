@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskmanager-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskmanager
+    ports:
+      - "5433:5432"  # host:container (5433 so it doesn't clash with your local postgres)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # data persists even if container stops
+
+  app:
+    build: .  # build using our Dockerfile
+    container_name: taskmanager-app
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres      # container name acts as hostname inside Docker network
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: taskmanager
+      JWT_SECRET: supersecretkey123
+      JWT_EXPIRES_IN: 3600s
+    depends_on:
+      - postgres  # wait for postgres to start before starting app
+
+volumes:
+  postgres_data:
